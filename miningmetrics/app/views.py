@@ -7,11 +7,17 @@ from django.views.generic import TemplateView, DetailView, ListView
 
 
 class ConcentrateQualityAPIList(generics.ListCreateAPIView):
-    queryset = ConcentrateQuality.objects.all()
+    lookup_field = 'pk'
+    # queryset = ConcentrateQuality.objects.all()
     serializer_class = ConcentrateQualitySerializer
+
+    def get_queryset(self):
+        report_date_id = self.kwargs['pk']
+        return ConcentrateQuality.objects.filter(
+            report_month_id=report_date_id
+        )
+
 
 
 class ReportView(ListView):
     model = ReportDate
-    
-    

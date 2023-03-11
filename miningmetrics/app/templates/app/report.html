@@ -17,7 +17,10 @@
         #98fb98
         */
         body {           
-            color: #9db4ca;            
+                        
+        }
+        .nav-text-color{
+            color: #9db4ca;
         }
         .a-white {
             color: #fff;
@@ -66,13 +69,7 @@
         </a>
     
         <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-            {% comment %} <a class="dropdown-item" href="#">Action</a> {% endcomment %}
-            
-            {% comment %} {% url 'add-to-order' item.id %} {% endcomment %}
             {% for date in object_list %}
-                {% comment %} <input type="hidden" name="date_id" value="{{ date.id }}">
-                <input class="dropdown-item" type="submit" value="{{ date.date }}"> {% endcomment %}
-
                 <input type="hidden" name="date_id" value="{{ date.id }}">
                 <input class="dropdown-item" type="button" value="{{ date.date }}" onclick="loadData('{{ date.id }}')">
             {% endfor %}
@@ -87,23 +84,84 @@
 <script src="https://bossanova.uk/jspreadsheet/v4/jexcel.js"></script>
 <script src="https://jsuites.net/v4/jsuites.js"></script>
 <script>
+    const table = jspreadsheet(document.getElementById('spreadsheet'), {
+        columns: [
+            { title: 'Время записи', width: 200 },
+            { title: 'Наименование сырья', width: 200 },
+            { title: 'Железо, %', width: 100 },
+            { title: 'Кремний, %', width: 100 },
+            { title: 'Алюминий, %', width: 130 },
+            { title: 'Кальций, %', width: 100 },
+            { title: 'Сера, %', width: 100 },
+        ],
+        
+    });
+    //var total = [ 'Total', '-', '=SUM(C1:C2)', '=SUM(D1:D2)', '=SUM(E1:E2)' ];
+    var SUMCOL = function(instance, columnId) {
+        var total = 0;
+        for (var j = 0; j < instance.options.data.length; j++) {
+            if (Number(instance.records[j][columnId].innerHTML)) {
+                total += Number(instance.records[j][columnId].innerHTML);
+            }
+        }
+        return total;
+    }
+
+    var AVGCOL = function(instance, columnId) {
+        var sum = SUMCOL(instance, columnId);
+        return sum / instance.options.data.length;
+    }
+
+    var MINCOL = function(instance, columnId) {
+        var min = Infinity;
+        for (var j = 0; j < instance.options.data.length; j++) {
+            var value = Number(instance.records[j][columnId].innerHTML);
+            if (value && value < min) {
+                min = value;
+            }
+        }
+        return min;
+    }
+    
+    var MAXCOL = function(instance, columnId) {
+        var max = -Infinity;
+        for (var j = 0; j < instance.options.data.length; j++) {
+            var value = Number(instance.records[j][columnId].innerHTML);
+            if (value && value > max) {
+                max = value;
+            }
+        }
+        return max;
+    }
+
     function loadData(date_id) {
         const url = `http://127.0.0.1:8000/api/v1/report/${date_id}`;
+        var arrayOfArrays = [];
+        var footers = [];
         fetch(url)
             .then(response => response.json())
             .then(data => {
-                jspreadsheet(document.getElementById('spreadsheet'), {
-                    data: data,
-                    columns: [
-                        { title: 'Время записи', width: 100 },
-                        { title: 'Наименование сырья', width: 100 },
-                        { title: 'Железо, %', width: 100 },
-                        { title: 'Кремний, %', width: 100 },
-                        { title: 'Алюминий, %', width: 100 },
-                        { title: 'Кальций, %', width: 100 },
-                        { title: 'Сера, %', width: 100 },
+                arrayOfArrays = data.map(obj => Object.values(obj));
+                table.setData(arrayOfArrays);
+
+                footers = [
+                    [
+                        'Среднее','-', '=AVGCOL(table(), 2)',
+                        '=AVGCOL(table(), 3)','=AVGCOL(TABLE(), 4)',
+                        '=AVGCOL(TABLE(), 5)', '=AVGCOL(TABLE(), 6)'
                     ],
-                });
+                    [
+                        'Максимальное','-', '=MAXCOL(table(), 2)',
+                        '=MAXCOL(table(), 3)','=MAXCOL(TABLE(), 4)',
+                        '=MAXCOL(TABLE(), 5)', '=MAXCOL(TABLE(), 6)'
+                    ],
+                    [
+                        'Минимальное','-', '=MINCOL(table(), 2)',
+                        '=MINCOL(table(), 3)','=MINCOL(TABLE(), 4)',
+                        '=MINCOL(TABLE(), 5)', '=MINCOL(TABLE(), 6)'
+                    ]
+                ];
+                table.setFooter(footers)
             });
     }
 </script>

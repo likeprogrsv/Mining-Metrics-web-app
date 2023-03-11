@@ -12,6 +12,20 @@ class ConcentrateQualitySerializer(serializers.ModelSerializer):
             'ferrum', 'silicium', 'aluminum',
             'calcium', 'sulfur', ]
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['time_create'] = instance.time_create.strftime('%Y-%m-%d %H:%M:%S')
+        return representation
+
+
+# class ConcentrateStatisticSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = ConcentrateQuality
+#         fields = [
+#             'ferrum', 'silicium', 'aluminum',
+#             'calcium', 'sulfur',
+#         ]
+
 
 class ReportDateSerializer(serializers.ModelSerializer):
 
