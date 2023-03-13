@@ -19,9 +19,6 @@
         body {           
                         
         }
-        .nav-text-color{
-            color: #9db4ca;
-        }
         .a-white {
             color: #fff;
         }
@@ -74,10 +71,14 @@
                 <input class="dropdown-item" type="button" value="{{ date.date }}" onclick="loadData('{{ date.id }}')">
             {% endfor %}
         </div>
-  </div>
+        
+    </div>
 
-  <div id="spreadsheet"></div>
+    <div style="padding-left: 10px" id="spreadsheet"></div>
 
+    <div class="text-center">
+        <button class="btn btn-outline-success"  id="save-btn">Сохранить данные</button>
+    </div>
 </body>
 </html>
 
@@ -96,7 +97,7 @@
         ],
         
     });
-    //var total = [ 'Total', '-', '=SUM(C1:C2)', '=SUM(D1:D2)', '=SUM(E1:E2)' ];
+    
     var SUMCOL = function(instance, columnId) {
         var total = 0;
         for (var j = 0; j < instance.options.data.length; j++) {
@@ -109,13 +110,13 @@
 
     var AVGCOL = function(instance, columnId) {
         var sum = SUMCOL(instance, columnId);
-        return sum / instance.options.data.length;
+        return (sum / instance.options.data.length).toFixed(2);
     }
 
     var MINCOL = function(instance, columnId) {
         var min = Infinity;
         for (var j = 0; j < instance.options.data.length; j++) {
-            var value = Number(instance.records[j][columnId].innerHTML);
+            var value = Number(instance.records[j][columnId].innerHTML).toFixed(2);
             if (value && value < min) {
                 min = value;
             }
@@ -126,7 +127,7 @@
     var MAXCOL = function(instance, columnId) {
         var max = -Infinity;
         for (var j = 0; j < instance.options.data.length; j++) {
-            var value = Number(instance.records[j][columnId].innerHTML);
+            var value = Number(instance.records[j][columnId].innerHTML).toFixed(2);
             if (value && value > max) {
                 max = value;
             }
@@ -134,14 +135,31 @@
         return max;
     }
 
+    var url = '';
+    var report_month;
+    
     function loadData(date_id) {
-        const url = `http://127.0.0.1:8000/api/v1/report/${date_id}`;
+        report_month = date_id
+        url = `http://127.0.0.1:8000/api/v1/report/${date_id}`;
         var arrayOfArrays = [];
         var footers = [];
         fetch(url)
             .then(response => response.json())
             .then(data => {
-                arrayOfArrays = data.map(obj => Object.values(obj));
+
+                const newData = data.map(obj => {
+                    const newObj = {};
+                    Object.entries(obj).forEach(([key, value], index, array) => {
+                      if (index !== array.length - 1) {
+                        newObj[key] = value;
+                      }
+                    });
+                    return newObj;
+                  });
+
+                arrayOfArrays = newData.map(obj => Object.values(obj));
+                
+                // Заполняем таблицу данными нужного месяца
                 table.setData(arrayOfArrays);
 
                 footers = [
@@ -164,6 +182,55 @@
                 table.setFooter(footers)
             });
     }
+
+    $('#save-btn').click(function() {
+        saveDataToBackend();
+      });
+    
+    const csrftoken = '{{ csrf_token }}';
+
+    function formatReportData(values) {
+        const keys = [
+            "time_create", "material_name", "ferrum", "silicium",
+            "aluminum", "calcium", "sulfur", 
+        ];
+        const result = values.map(arr => {
+            const obj = {};
+            keys.forEach((key, index) => {
+              obj[key] = arr[index];
+
+            });
+            obj["report_month"] = report_month;
+            return obj;
+          });
+        return result;
+    }
+    
+
+    function saveDataToBackend() {
+        // Получение данных из таблицы
+        //const data = table.getJson();
+        data = formatReportData(table.getData())
+        fetch(url + '/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify(data)
+          })
+          .then(response => {
+            if (response.ok) {
+              alert('Данные успешно сохранены!');
+            } else {
+              throw new Error('Ошибка сохранения данных');
+            }
+          })
+          .catch(error => {
+            console.error(error);
+            alert('Ошибка сохранения данных: ' + error.message);
+          });
+      }
 </script>
 
 
