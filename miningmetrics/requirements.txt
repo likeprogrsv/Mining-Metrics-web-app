@@ -1,6 +1,5 @@
 django
 djangorestframework
 psycopg2
-flake8
-flake8-bugbear
-pep8-naming
+uWSGI
+tzdata
