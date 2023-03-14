@@ -1,5 +1,3 @@
-from re import L
-from urllib import response
 from django.shortcuts import render
 from rest_framework import generics
 from rest_framework.response import Response
@@ -7,12 +5,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from .models import ConcentrateQuality, ReportDate
 from .serializers import ConcentrateQualitySerializer
-from django.views.generic import TemplateView, DetailView, ListView
+from django.views.generic import ListView
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 
 
 class ConcentrateQualityAPIList(generics.ListCreateAPIView):
     lookup_field = 'pk'
-    # queryset = ConcentrateQuality.objects.all()
     serializer_class = ConcentrateQualitySerializer
     permission_classes = (IsAuthenticated,)
 
@@ -29,9 +28,17 @@ class ConcentrateQualityAPIList(generics.ListCreateAPIView):
 
         for obj in serializer.validated_data:
             ConcentrateQuality.objects.get_or_create(**obj)
-    
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class ReportView(ListView):
     model = ReportDate
+
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+
+def index(request):
+    return render(request, 'app/index.html')

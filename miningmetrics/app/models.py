@@ -6,7 +6,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 class ReportDate(models.Model):
     class Meta:
-        ordering = ['date']
+        ordering = ['-date']
 
     date = models.DateField()
 
@@ -15,6 +15,15 @@ class ReportDate(models.Model):
 
 
 class ConcentrateQuality(models.Model):
+    """Модель для качественных показателях железорудного концентрата.
+
+        Диапазон допустимых значений для показателей
+        концентрата - от 0 до 100 (проценты).
+    """
+
+    class Meta:
+        ordering = ['report_month']
+
     time_create = models.DateTimeField(auto_now_add=True)
     material_name = models.TextField(blank=False)
 
@@ -57,4 +66,4 @@ class ConcentrateQuality(models.Model):
     report_month = models.ForeignKey(ReportDate, on_delete=models.PROTECT)
 
     def __str__(self) -> str:
-        return self.material_name
+        return f'{self.report_month.date} -> {self.material_name}'

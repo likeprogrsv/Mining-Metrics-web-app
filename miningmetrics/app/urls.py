@@ -1,8 +1,11 @@
-from re import template
-from django.urls import path
-from .views import ConcentrateQualityAPIList, ReportView
+from django.urls import include, path
+from .views import ConcentrateQualityAPIList, ReportView, index
 
 urlpatterns = [
-    path('report/', ReportView.as_view(template_name='app/report.html')),
+    path('', index, name='home'),
+    path('report/', ReportView.as_view(
+        template_name='app/report.html'), name='report'
+    ),
+    path('api/v1/auth/', include('rest_framework.urls')),
     path('api/v1/report/<int:pk>/', ConcentrateQualityAPIList.as_view()),
 ]
