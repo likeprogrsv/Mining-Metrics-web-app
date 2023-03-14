@@ -6,7 +6,6 @@ WORKDIR /app
 
 COPY ./requirements.txt ./requirements.txt
 COPY . .
-COPY ./scripts /scripts
 
 EXPOSE 8000
 
@@ -22,15 +21,9 @@ RUN python -m venv /py && \
     mkdir -p /vol/web/media && \
     mkdir -p /app/static && \
     chown -R app:app /vol && \
-    chmod -R 755 /vol && \
-    chmod -R +x /scripts
-
-# RUN adduser -D dockuser
-
-# USER dockuser
-
+    chmod -R 755 /vol
+        
 ENV PATH="/scripts:/py/bin:$PATH"
 
 USER app
 
-# CMD ["run.sh"]
