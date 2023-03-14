@@ -5,7 +5,7 @@
 Для запуска c docker-compose предлагаю использовать данные команды:
     'docker-compose build'
     
-    <!-- Для создания профиля администратора -->
+    Для создания профиля администратора
     'docker-compose run --rm app sh -c "python manage.py createsuperuser"'
 
     'docker-compose up'
