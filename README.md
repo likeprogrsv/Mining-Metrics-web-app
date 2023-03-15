@@ -11,7 +11,7 @@
 
     'docker-compose up'
 
-Использовал: Django, DRF, PostgreSQL, Docker.
+Использовал: Django, DRF, PostgreSQL, Docker, uWSGI, Nginx.
 Ниже примеры работы приложения:
 
 ![alt text](https://github.com/likeprogrsv/Mining-Metrics-web-app/blob/main/example-1.gif)
